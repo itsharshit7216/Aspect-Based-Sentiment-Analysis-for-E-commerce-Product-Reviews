@@ -19,10 +19,7 @@ An end-to-end **Aspect-Based Sentiment Analysis (ABSA)** web application and API
 
 Try the live deployed version directly in your browser without any setup:
 
-👉 **[Launch Live Demo on Render](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com)**
-
-- **Interactive Web UI**: [https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/)
-- **FastAPI Interactive Swagger Docs**: [https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/docs](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/docs)
+👉 **[Launch Live Demo on Render (https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com)](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com)**
 
 ---
 
