@@ -2,13 +2,7 @@ import logging
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from src.absa_engine import ABSAEngine
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("ABSA_FastAPI")
-
-# Initialize ABSA Engine
-engine = ABSAEngine()
+from demo import demo, engine
 
 # Initialize FastAPI App
 app = FastAPI(
