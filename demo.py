@@ -398,5 +398,6 @@ with gr.Blocks(title="Customer Review Intelligence") as demo:
         )
 
 if __name__ == "__main__":
-    print("Launching Customer Review Intelligence UI on http://localhost:7860...")
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, css=custom_css)
+    port = int(os.environ.get("PORT", 7860))
+    print(f"Launching Customer Review Intelligence UI on port {port}...")
+    demo.launch(server_name="0.0.0.0", server_port=port, share=False, css=custom_css)
