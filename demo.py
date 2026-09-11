@@ -96,15 +96,16 @@ def analyze_review(sentence: str):
 
     return summary_banner, data
 
-# Bright & Clean Modern Design CSS
+# Strict Bright / Light Modern Design CSS
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Force Bright Clean Background */
-body, .gradio-container, gradio-app {
+/* Force Light Mode Everywhere */
+:root, html, body, .gradio-container, gradio-app, .dark, [data-theme="dark"] {
     background-color: #f8fafc !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     color: #0f172a !important;
+    color-scheme: light !important;
 }
 
 .container {
@@ -113,14 +114,17 @@ body, .gradio-container, gradio-app {
     padding: 20px 20px;
 }
 
-/* Header styling */
+/* Header layout ensuring top-right alignment */
 .header-box {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 16px;
+    gap: 20px;
+}
+
+.title-area {
+    flex: 1;
 }
 
 .title-area h1 {
@@ -144,27 +148,37 @@ body, .gradio-container, gradio-app {
     border-radius: 2px;
 }
 
+/* Top Right Callout Badge */
 .callout-card {
     background: #eff6ff !important;
     border: 1px solid #bfdbfe !important;
     border-radius: 12px;
-    padding: 12px 18px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     gap: 12px;
-    max-width: 340px;
+    margin-left: auto;
+    flex-shrink: 0;
     box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.callout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
 .callout-text {
     font-size: 13.5px !important;
     color: #1e40af !important;
-    font-weight: 600 !important;
-    line-height: 1.4;
+    font-weight: 500 !important;
+    line-height: 1.35;
+    max-width: 210px;
 }
 
-/* Bright Cards */
-.input-card, .results-card {
+/* Force Light Cards */
+.dark .input-card, .dark .results-card, .input-card, .results-card {
     background: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
     border-radius: 14px !important;
@@ -189,14 +203,14 @@ body, .gradio-container, gradio-app {
     margin-bottom: 16px;
 }
 
-/* Textarea and Form Wrappers in Bright Mode */
+/* Textarea in Bright Mode */
 .block, .form, fieldset, .wrap, .gradio-textbox {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
-textarea {
+.dark textarea, textarea {
     background: #ffffff !important;
     color: #0f172a !important;
     border: 1px solid #cbd5e1 !important;
@@ -285,7 +299,15 @@ textarea:focus {
 }
 """
 
-with gr.Blocks(title="Customer Review Intelligence") as demo:
+force_light_js = """
+() => {
+    document.documentElement.classList.remove('dark');
+    document.body.classList.remove('dark');
+    localStorage.setItem('gradio-theme', 'light');
+}
+"""
+
+with gr.Blocks(title="Customer Review Intelligence", js=force_light_js) as demo:
     with gr.Column(elem_classes=["container"]):
         # Top Header Section
         gr.HTML("""
@@ -296,11 +318,13 @@ with gr.Blocks(title="Customer Review Intelligence") as demo:
                 <div class='accent-line'></div>
             </div>
             <div class='callout-card'>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <circle cx="12" cy="12" r="6"></circle>
-                    <circle cx="12" cy="12" r="2"></circle>
-                </svg>
+                <div class='callout-icon'>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <circle cx="12" cy="12" r="6"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                </div>
                 <div class='callout-text'>Turn customer feedback into meaningful insights</div>
             </div>
         </div>
