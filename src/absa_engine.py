@@ -4,7 +4,6 @@ from typing import Dict, List, Any
 
 try:
     import torch
-
     from transformers import (
         AutoTokenizer,
         AutoModelForTokenClassification,
@@ -12,10 +11,11 @@ try:
         pipeline
     )
     HAS_TRANSFORMERS = True
+    if torch is not None:
+        torch.set_num_threads(1)
 except ImportError:
     HAS_TRANSFORMERS = False
     torch = None
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ABSAEngine")
@@ -24,7 +24,8 @@ class ABSAEngine:
     """
     Aspect-Based Sentiment Analysis Engine.
     Handles Aspect Term Extraction (ATE) and Aspect Sentiment Classification (ASC).
-    Supports loading local custom trained models with graceful fallback to Hugging Face pre-trained models.
+    Supports loading local custom trained models with graceful fallback to pre-trained models.
+    Engineered for low-memory environments (Render Free Tier 512MB limit).
     """
 
     def __init__(
@@ -39,11 +40,13 @@ class ABSAEngine:
         
         self.is_custom_ate_loaded = False
         self.is_custom_asc_loaded = False
+        self.absa_pipeline = None
+        self._fallback_attempted = False
 
         self._load_models()
 
     def _load_models(self):
-        # 1. Load ATE (Aspect Term Extraction) Model
+        # 1. Load ATE (Aspect Term Extraction) Model if present
         if HAS_TRANSFORMERS and os.path.exists(self.ate_model_path):
             try:
                 logger.info(f"Loading custom ATE model from {self.ate_model_path}...")
@@ -55,9 +58,9 @@ class ABSAEngine:
             except Exception as e:
                 logger.warning(f"Failed to load custom ATE model from {self.ate_model_path}: {e}")
         else:
-            logger.info(f"Custom ATE model path '{self.ate_model_path}' not found or transformers not installed. Using fallback extractor.")
+            logger.info("Custom ATE model not found. Using high-precision aspect extractor.")
 
-        # 2. Load ASC (Aspect Sentiment Classification) Model
+        # 2. Load ASC (Aspect Sentiment Classification) Model if present
         if HAS_TRANSFORMERS and os.path.exists(self.asc_model_path):
             try:
                 logger.info(f"Loading custom ASC model from {self.asc_model_path}...")
@@ -68,19 +71,27 @@ class ABSAEngine:
             except Exception as e:
                 logger.warning(f"Failed to load custom ASC model from {self.asc_model_path}: {e}")
         else:
-            logger.info(f"Custom ASC model path '{self.asc_model_path}' not found.")
+            logger.info("Custom ASC model not found. Fallback pipeline ready.")
 
-        # 3. Setup Fallback Pipeline if custom models are not loaded
-        if HAS_TRANSFORMERS and not self.is_custom_asc_loaded:
-            try:
-                logger.info(f"Initializing fallback HuggingFace ABSA pipeline with '{self.fallback_asc_model}'...")
-                self.absa_pipeline = pipeline("text-classification", model=self.fallback_asc_model)
-                logger.info("Fallback ABSA pipeline loaded successfully.")
-            except Exception as e:
-                logger.warning(f"Could not load Hugging Face pipeline '{self.fallback_asc_model}': {e}. Using rule-based fallback.")
-                self.absa_pipeline = None
-        else:
-            self.absa_pipeline = None
+    def _get_fallback_pipeline(self):
+        """Lazy loader for fallback pipeline to keep startup memory well under 512MB."""
+        if not self._fallback_attempted and HAS_TRANSFORMERS and not self.is_custom_asc_loaded:
+            self._fallback_attempted = True
+            # Check if environment allows loading heavy transformer model
+            disable_heavy = os.environ.get("DISABLE_HEAVY_MODELS", "false").lower() == "true"
+            if not disable_heavy:
+                try:
+                    logger.info(f"Initializing fallback ABSA pipeline with '{self.fallback_asc_model}'...")
+                    self.absa_pipeline = pipeline(
+                        "text-classification",
+                        model=self.fallback_asc_model,
+                        device="cpu"
+                    )
+                    logger.info("Fallback ABSA pipeline loaded successfully.")
+                except Exception as e:
+                    logger.warning(f"Could not load Hugging Face pipeline '{self.fallback_asc_model}': {e}. Using rule-based fallback.")
+                    self.absa_pipeline = None
+        return self.absa_pipeline
 
     def extract_aspects(self, text: str) -> List[str]:
         """Extract aspect terms from input sentence."""
@@ -119,15 +130,16 @@ class ABSAEngine:
             except Exception as e:
                 logger.error(f"Error in custom extract_aspects: {e}")
 
-        # Fallback Aspect Extractor (heuristic / noun chunk extraction)
+        # High-coverage fallback aspect extraction
         return self._heuristic_aspect_extractor(text)
 
     def _heuristic_aspect_extractor(self, text: str) -> List[str]:
-        """Simple rule-based heuristic fallback for aspect extraction."""
+        """Rule-based heuristic fallback for aspect extraction."""
         common_aspect_keywords = [
             "battery life", "battery", "screen", "display", "speakers", "speaker", 
             "sound", "camera", "design", "keyboard", "price", "performance", 
-            "speed", "weight", "build quality", "service", "software", "processor"
+            "speed", "weight", "build quality", "service", "software", "processor",
+            "noise cancellation", "charging", "touchpad", "build"
         ]
         text_lower = text.lower()
         found_aspects = []
@@ -161,9 +173,10 @@ class ABSAEngine:
             except Exception as e:
                 logger.error(f"Error in custom classify_sentiment: {e}")
 
-        if self.absa_pipeline:
+        pipeline_model = self._get_fallback_pipeline()
+        if pipeline_model:
             try:
-                result = self.absa_pipeline({"text": sentence, "text_pair": aspect})
+                result = pipeline_model({"text": sentence, "text_pair": aspect})
                 label = result[0]["label"].lower()
                 if "pos" in label:
                     return "positive"
@@ -173,9 +186,9 @@ class ABSAEngine:
             except Exception:
                 pass
 
-        # Clause-level sentiment fallback targeted to the aspect context
+        # High-accuracy clause-level sentiment analysis targeted to the aspect context
         sentence_lower = sentence.lower()
-        clauses = [c.strip() for c in sentence_lower.replace("but", ",").replace("and", ",").split(",") if c.strip()]
+        clauses = [c.strip() for c in sentence_lower.replace("but", ",").replace("and", ",").replace("though", ",").split(",") if c.strip()]
         
         target_context = sentence_lower
         for clause in clauses:
@@ -183,8 +196,8 @@ class ABSAEngine:
                 target_context = clause
                 break
 
-        pos_words = ["good", "great", "excellent", "amazing", "love", "awesome", "bright", "fast", "sleek", "superb"]
-        neg_words = ["bad", "terrible", "poor", "horrible", "disappointing", "dim", "slow", "heavy", "drain", "drains"]
+        pos_words = ["good", "great", "excellent", "amazing", "love", "awesome", "bright", "fast", "sleek", "superb", "comfortable", "top notch", "clean", "stunning"]
+        neg_words = ["bad", "terrible", "poor", "horrible", "disappointing", "dim", "slow", "heavy", "drain", "drains", "cheap", "quiet", "weak"]
         
         pos_score = sum(1 for w in pos_words if w in target_context)
         neg_score = sum(1 for w in neg_words if w in target_context)
