@@ -61,8 +61,15 @@ def analyze_text(request: RequestText):
 
 # Mount Gradio Web UI directly into FastAPI so both Web UI and REST API run together
 import gradio as gr
-from demo import demo
-app = gr.mount_gradio_app(app, demo, path="/")
+from demo import demo, custom_css, force_light_js, head_html
+app = gr.mount_gradio_app(
+    app, 
+    demo, 
+    path="/", 
+    css=custom_css, 
+    js=force_light_js, 
+    head=head_html
+)
 
 if __name__ == "__main__":
     import os

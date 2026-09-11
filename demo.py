@@ -100,12 +100,56 @@ def analyze_review(sentence: str):
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* Force Light Mode Everywhere */
-:root, html, body, .gradio-container, gradio-app, .dark, [data-theme="dark"] {
+/* Force Light Theme Globally - Overrides System / Dark Preferences */
+:root, html, body, .gradio-container, gradio-app, .dark, [data-theme="dark"], body.dark, html.dark, dialog, .modal, [role="dialog"] {
+    --background-fill-primary: #ffffff !important;
+    --background-fill-secondary: #f8fafc !important;
+    --block-background-fill: #ffffff !important;
+    --body-background-fill: #f8fafc !important;
+    --body-text-color: #0f172a !important;
+    --block-label-text-color: #0f172a !important;
+    --block-title-text-color: #0f172a !important;
+    --input-background-fill: #ffffff !important;
+    --input-border-color: #cbd5e1 !important;
+    --border-color-primary: #e2e8f0 !important;
+    --border-color-secondary: #e2e8f0 !important;
+    --button-secondary-background-fill: #eff6ff !important;
+    --button-secondary-text-color: #1d4ed8 !important;
+    --button-secondary-border-color: #bfdbfe !important;
+    --neutral-50: #f8fafc !important;
+    --neutral-100: #f1f5f9 !important;
+    --neutral-200: #e2e8f0 !important;
+    --neutral-300: #cbd5e1 !important;
+    --neutral-400: #94a3b8 !important;
+    --neutral-500: #64748b !important;
+    --neutral-600: #475569 !important;
+    --neutral-700: #334155 !important;
+    --neutral-800: #1e293b !important;
+    --neutral-900: #0f172a !important;
+    --neutral-950: #020617 !important;
     background-color: #f8fafc !important;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
     color: #0f172a !important;
     color-scheme: light !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root, html, body, .gradio-container, gradio-app, .dark, [data-theme="dark"], body.dark, html.dark {
+        --background-fill-primary: #ffffff !important;
+        --background-fill-secondary: #f8fafc !important;
+        --block-background-fill: #ffffff !important;
+        --body-background-fill: #f8fafc !important;
+        --body-text-color: #0f172a !important;
+        --block-label-text-color: #0f172a !important;
+        --block-title-text-color: #0f172a !important;
+        --input-background-fill: #ffffff !important;
+        --input-border-color: #cbd5e1 !important;
+        --border-color-primary: #e2e8f0 !important;
+        --border-color-secondary: #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+        color-scheme: light !important;
+    }
 }
 
 .container {
@@ -299,15 +343,88 @@ textarea:focus {
 }
 """
 
+head_html = """
+<script>
+(function() {
+    try {
+        localStorage.setItem('gradio-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        sessionStorage.setItem('gradio-theme', 'light');
+    } catch(e) {}
+    
+    // Lock document to light theme immediately
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.style.colorScheme = 'light';
+    
+    // Override matchMedia for dark mode queries so 'System' option evaluates to light
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = function(query) {
+        if (query && (query.includes('prefers-color-scheme: dark') || query.includes('prefers-color-scheme:dark'))) {
+            return {
+                matches: false,
+                media: query,
+                onchange: null,
+                addListener: function() {},
+                removeListener: function() {},
+                addEventListener: function() {},
+                removeEventListener: function() {},
+                dispatchEvent: function() { return false; }
+            };
+        }
+        return originalMatchMedia.call(window, query);
+    };
+})();
+</script>
+<style>
+/* Immediate light theme override */
+:root, html, body, gradio-app, .gradio-container, .dark, [data-theme="dark"], body.dark, html.dark {
+    color-scheme: light !important;
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+</style>
+"""
+
 force_light_js = """
 () => {
-    document.documentElement.classList.remove('dark');
-    document.body.classList.remove('dark');
-    localStorage.setItem('gradio-theme', 'light');
+    try {
+        localStorage.setItem('gradio-theme', 'light');
+        localStorage.setItem('theme', 'light');
+        sessionStorage.setItem('gradio-theme', 'light');
+    } catch(e) {}
+
+    const enforceLight = () => {
+        document.documentElement.classList.remove('dark');
+        document.body.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        document.body.classList.add('light');
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.colorScheme = 'light';
+        document.body.style.colorScheme = 'light';
+        
+        const gradioApp = document.querySelector('gradio-app');
+        if (gradioApp) {
+            gradioApp.classList.remove('dark');
+            gradioApp.classList.add('light');
+            gradioApp.setAttribute('data-theme', 'light');
+            gradioApp.style.colorScheme = 'light';
+            if (gradioApp.shadowRoot) {
+                const darkEls = gradioApp.shadowRoot.querySelectorAll('.dark');
+                darkEls.forEach(el => el.classList.remove('dark'));
+            }
+        }
+        document.querySelectorAll('.dark').forEach(el => el.classList.remove('dark'));
+    };
+
+    enforceLight();
+    setInterval(enforceLight, 250);
 }
 """
 
-with gr.Blocks(title="Customer Review Intelligence", js=force_light_js) as demo:
+with gr.Blocks(title="Customer Review Intelligence") as demo:
     with gr.Column(elem_classes=["container"]):
         # Top Header Section
         gr.HTML("""
@@ -424,4 +541,5 @@ with gr.Blocks(title="Customer Review Intelligence", js=force_light_js) as demo:
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
     print(f"Launching Customer Review Intelligence UI on port {port}...")
-    demo.launch(server_name="0.0.0.0", server_port=port, share=False, css=custom_css)
+    demo.launch(server_name="0.0.0.0", server_port=port, share=False, css=custom_css, js=force_light_js, head=head_html)
+
