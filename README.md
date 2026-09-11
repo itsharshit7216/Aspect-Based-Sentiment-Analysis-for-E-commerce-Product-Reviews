@@ -1,5 +1,6 @@
 # Aspect-Based Sentiment Analysis (ABSA) for E-commerce Product Reviews
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Render-46E3B7?style=flat&logo=render&logoColor=white)](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![Gradio](https://img.shields.io/badge/Gradio-4.20%2B-orange.svg)](https://gradio.app/)
@@ -11,6 +12,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 An end-to-end **Aspect-Based Sentiment Analysis (ABSA)** web application and API for e-commerce customer feedback. Powered by **BERT** for Aspect Term Extraction (ATE), **DeBERTa-v3** for Aspect Sentiment Classification (ASC), and **Seqeval** for BIO-tagging evaluation, this project extracts specific product aspect terms (e.g. *screen*, *battery life*, *speakers*) from unstructured customer reviews and classifies the sentiment (*positive*, *negative*, *neutral*) specifically targeted at each aspect using PyTorch and Hugging Face Transformers.
+
+---
+
+## 🌐 Live Interactive Demo
+
+Try the live deployed version directly in your browser without any setup:
+
+👉 **[Launch Live Demo on Render](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com)**
+
+- **Interactive Web UI**: [https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/)
+- **FastAPI Interactive Swagger Docs**: [https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/docs](https://aspect-based-sentiment-analysis-for-e-gqf1.onrender.com/docs)
 
 ---
 
@@ -69,7 +81,7 @@ flowchart LR
 - **[Pytest](https://docs.pytest.org/)** – Automated test framework for unit and integration testing.
 - **[HTTPX / Requests](https://www.python-httpx.org/)** – HTTP clients for API request testing.
 - **[Git & GitHub](https://github.com/)** – Version control and repository hosting.
-- **[Hugging Face Spaces / Render](https://huggingface.co/spaces)** – Cloud deployment platforms.
+- **[Render](https://render.com/)** – Cloud application deployment.
 
 ### Summary Table
 
@@ -87,12 +99,14 @@ flowchart LR
 ## Repository Structure
 
 ```
+├── assets/                   # Application screenshots and demo media
+│   ├── ui_review_input.png
+│   └── ui_analysis_results.png
 ├── demo.py                   # Gradio Web UI entrypoint (with live counter & flagging)
 ├── main.py                   # FastAPI REST backend server
 ├── requirements.txt          # Python dependencies
 ├── .gitignore                # Git exclusion rules
 ├── README.md                 # Project documentation
-├── screenGradioDemo.png      # Web interface screenshot
 ├── src/
 │   ├── absa_engine.py        # Core ABSA Engine logic with fallback support
 │   ├── dataset_loader.py     # Dataset download & preprocessing utility
@@ -106,6 +120,16 @@ flowchart LR
 └── tests/
     └── test_absa.py          # Automated unit & endpoint tests
 ```
+
+---
+
+## 📸 Application Screenshots
+
+### 1. Review Input & Real-Time Character Counter
+![Customer Review Intelligence - Input Interface](assets/ui_review_input.png)
+
+### 2. Multi-Aspect Extraction & Sentiment Classification Results
+![Analysis Results - Extracted Aspects and Sentiments](assets/ui_analysis_results.png)
 
 ---
 
