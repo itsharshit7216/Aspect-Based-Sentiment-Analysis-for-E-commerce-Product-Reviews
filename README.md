@@ -5,9 +5,12 @@
 [![Gradio](https://img.shields.io/badge/Gradio-4.20%2B-orange.svg)](https://gradio.app/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-red.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-yellow.svg)](https://huggingface.co/)
+[![DeBERTa-v3](https://img.shields.io/badge/Model-DeBERTa--v3-purple.svg)](https://huggingface.co/yangheng/deberta-v3-base-absa-v1.1)
+[![BERT](https://img.shields.io/badge/Model-BERT-blueviolet.svg)](https://huggingface.co/google-bert/bert-base-uncased)
+[![Seqeval](https://img.shields.io/badge/Evaluation-Seqeval-brightgreen.svg)](https://github.com/chakki-works/seqeval)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An end-to-end **Aspect-Based Sentiment Analysis (ABSA)** web application and API for e-commerce customer feedback. This project extracts specific product aspect terms (e.g. *screen*, *battery life*, *speakers*) from unstructured customer reviews and classifies the sentiment (*positive*, *negative*, *neutral*) specifically targeted at each aspect using PyTorch and Hugging Face Transformers.
+An end-to-end **Aspect-Based Sentiment Analysis (ABSA)** web application and API for e-commerce customer feedback. Powered by **BERT** for Aspect Term Extraction (ATE), **DeBERTa-v3** for Aspect Sentiment Classification (ASC), and **Seqeval** for BIO-tagging evaluation, this project extracts specific product aspect terms (e.g. *screen*, *battery life*, *speakers*) from unstructured customer reviews and classifies the sentiment (*positive*, *negative*, *neutral*) specifically targeted at each aspect using PyTorch and Hugging Face Transformers.
 
 ---
 
