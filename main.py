@@ -38,8 +38,8 @@ class ResponseSchema(BaseModel):
     analysis: dict
     extracted_aspects_count: int
 
-@app.get("/", tags=["Health"])
-def root():
+@app.get("/api-info", tags=["Health"])
+def root_info():
     return {
         "status": "online",
         "message": "Welcome to Aspect-Based Sentiment Analysis (ABSA) API",
